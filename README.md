@@ -1,138 +1,123 @@
-# HapticOS
+# hapticOS
 
-**A new interaction layer for smartphones — one that communicates without requiring you to look at or listen to your phone.**
+**Important information, communicated through touch.**
 
-> Status: 💡 Concept stage. This project has not started development yet. This README exists to define the idea clearly before any code is written.
+hapticOS explores how a phone can communicate selected alerts, walking directions and camera alignment through a small set of recognisable vibration patterns. The goal is to help people recognise useful events with fewer screen checks.
 
----
+[Explore the prototype](https://hapticos-concept.rprashasthimmanuel.chatgpt.site) · [Project documentation](docs/PROJECT.md) · [Architecture](docs/ARCHITECTURE.md) · [Run locally](#run-locally)
 
-## The Problem
+## Project status
 
-Every smartphone today has a powerful haptic actuator capable of rich, nuanced vibration patterns. Almost none of that capability is used.
+This repository contains a working **clickable concept prototype** built with HTML, CSS and JavaScript. It demonstrates the mobile interface and interaction flows using scripted inputs and animated cue previews.
 
-In practice, haptics on phones are limited to one thing:
+The prototype does not read notifications or calls, access a camera or location, run an AI model, or produce physical vibration. A native Android implementation is planned. hapticOS is the product name; the proposed implementation is an Android application, not a replacement operating system.
 
-```
-buzz.
-```
+## The idea
 
-A message arrives — buzz. A call comes in — buzz. A reminder fires — buzz. The phone has one vocabulary word, and it uses it for everything. To actually understand *what* happened, you still have to pull out your phone and look at the screen.
+An ordinary vibration tells you that something happened. A learned pattern can communicate a little more: a message needs attention, the next turn is right, or the object you are aiming at is centred.
 
-Meanwhile, screens and sound compete for attention that is often unavailable — when you're walking, driving, in a meeting, or simply trying to stay present in the real world.
+The challenge is consistency. A cue must have a recognisable meaning, arrive while it is relevant, and stop when the underlying event changes. hapticOS combines three experiences around one proposed cue engine that manages these decisions.
 
-## The Idea: Semantic Haptics
+### Important alerts and calls
 
-HapticOS turns vibration into a **language**, not a single alert.
+Compare a shopping promotion, a ride arrival message and an incoming call. The promotion stays quiet in the example, the ride message uses two short pulses, and the call has a sustained pulse.
 
-Instead of one generic buzz for every event, HapticOS generates distinct, learnable vibration *patterns* — each one carrying real meaning. Over time, an AI model adapts these patterns to each individual user, until they become as instinctive to read as a glance at a screen.
+These patterns identify event categories, not the full message or the caller's intent. The native design combines selected notification text, user rules and local classification, with one supported cellular call integration.
 
-The invention here isn't vibration itself. It's this:
+### Walking guidance
 
-> **Using haptics as a semantic output channel for AI — a way for a device to communicate meaning, not just presence.**
+Step through a sample walk to a café. Separate rhythms represent right turns, left turns and arrival. The map and instruction update together, and the route can be restarted.
 
-### An early example vocabulary
+The planned app will derive instructions from location and route data. A language model will not decide the route. Left and right are learned rhythms; the motor does not physically push the phone in either direction.
 
-| Pattern | Meaning |
-|---|---|
-| Short pulse, left side | Turn left |
-| Short pulse, right side | Turn right |
-| One long pulse | Continue straight |
-| Two sharp pulses | Attention / urgent |
-| Soft pulse, increasing intensity | Destination approaching |
+### Camera finder
 
-These are starting points, not fixed rules. The system's job is to personalize this vocabulary per user — some people will feel a sharp double-pulse as "urgent," others may need a different rhythm to register the same meaning instantly. HapticOS learns that mapping over time.
+Move a simulated camera toward a visible bottle. The cue changes as the target approaches the centre. Hide the target to see alignment guidance stop and a distinct loss cue appear.
 
----
+The planned detector will operate only in finder mode. It cannot see an object hidden under a bed, and image alignment does not establish distance or a safe path.
 
-## Why This Matters
+## System architecture
 
-Today, a phone has three ways to reach you: a screen, a speaker, and an actuator that only knows how to buzz. HapticOS asks a simple question — **what if the third channel could actually talk?**
+![Proposed native Android architecture](docs/assets/hapticOS_Architecture.png)
 
-That has meaningful implications beyond convenience:
+[Open the scalable diagram](docs/assets/hapticOS_Architecture.svg)
 
-- **Attention:** You get information without breaking focus on the road, the conversation, or the room you're in.
-- **Discretion:** You can receive an alert in a meeting, in a theatre, or in an important conversation — with zero visible or audible signal to anyone else.
-- **Accessibility:** For users who are blind, low-vision, or deaf-blind, a rich haptic language isn't a convenience — it can be a primary channel of communication with the world.
+Each input adapter produces an event with a type, source, timestamp, expiry and identity. The shared engine removes duplicates, rejects stale events, applies priority rules and selects a supported vibration pattern. Android services and the manufacturer's driver then control the physical actuator.
 
----
+For example, a call may interrupt a pending walking cue. Afterward, the engine checks current route progress instead of replaying a turn that has already expired.
 
-## Four Core Use Cases
+This coordination is the central engineering proposal. Android already supports rich haptic effects; hapticOS does not claim to invent vibration or replace the hardware driver.
 
-HapticOS starts narrow, on purpose. Rather than trying to reinvent every notification, the first version focuses on four use cases where haptics can clearly outperform a screen.
+## What is implemented
 
-### 1. Navigation
-Walking or driving directions delivered as directional pulses instead of spoken turn-by-turn instructions or a glance at a map.
+| Area | Current prototype | Planned native build |
+| --- | --- | --- |
+| Alerts | Three selectable sample events and replay | Authorised notification input and local classification |
+| Calls | Scripted incoming call example | One validated cellular call state integration |
+| Navigation | Four sample route states | Location and walking route progress |
+| Finder | Alignment slider, centring and target loss | Live camera detection of supported categories |
+| Haptics | Animated visual previews | Supported Android vibration effects |
+| Coordination | Individual scripted scenarios | Shared scheduling, cancellation and expiry |
 
-**Example:** Walking to a café using turn-by-turn directions. A short pulse on the left edge of the phone (in your pocket or on your wrist) means "turn left in a few steps." A single long pulse means "keep going straight." You never have to look down.
+The prototype also includes keyboard focus states, labelled controls, an information dialog and reduced motion styling. These are implemented interface features, not a claim of independently verified accessibility.
 
-### 2. Urgent Notifications
-Time-sensitive information — a call from a specific contact, a security alert, a low-battery warning — delivered as a distinct, unmistakable pattern that cuts through everything else.
+## Run locally
 
-**Example:** You're in a meeting and your phone is on silent. A two-sharp-pulse pattern lets you know something needs immediate attention — different enough from your regular message pattern that you don't need to check to know it matters.
+No package installation, build step, API key or account is required.
 
-### 3. Contextual Reminders
-Reminders that carry their own meaning based on context — location, time, or an activity you're doing — without a screen popup interrupting you.
+From the repository folder, start a static server:
 
-**Example:** You set a reminder to buy milk. As you walk past a grocery store later that day, a soft, distinct pulse reminds you — because the reminder is context-aware, not just time-based.
-
-### 4. Confirmations
-Lightweight acknowledgments that an action succeeded or failed, replacing the need to check the screen after every tap.
-
-**Example:** You send a payment via a tap-to-pay gesture. A single confirming pulse tells you it went through. A different, "uneasy" pattern tells you it failed — no screen check required.
-
----
-
-## A Deeper Example: Finding an Object
-
-This is where semantic haptics goes beyond notifications and starts to feel like a new sense.
-
-Imagine you're looking for your water bottle on a cluttered desk. Instead of the phone saying *"Bottle located slightly to your left,"* it uses the camera to identify the object, tracks your orientation, and translates the *direction and distance* into a real-time haptic signal:
-
-```
-░   →  far, roughly aligned
-▒   →  getting closer
-▓   →  close, adjust slightly
-████ →  found it
+```sh
+python -m http.server 8000 --directory prototype
 ```
 
-As you turn or move your phone, the pulse changes in real time — intensifying as you approach, softening as you move away. You're essentially being guided by touch, the same way a compass guides you by direction.
+On Windows, use `py` instead of `python` if that is how Python is installed:
 
-This same mechanism has real accessibility value: a blind or low-vision user could locate a specific object in a room, or navigate toward a doorway, purely through touch — no audio, no screen.
+```powershell
+py -m http.server 8000 --directory prototype
+```
 
----
+Open **http://localhost:8000**. You can also open `prototype/index.html` directly in a modern browser.
 
-## How It Works (Conceptually)
+## Repository guide
 
-1. **Signal generation** — An on-device or cloud model interprets an event (a turn, an alert, a reminder, a confirmation) and maps it to a haptic pattern from a defined vocabulary.
-2. **Personalization loop** — The system observes how quickly and accurately a user responds to each pattern, and adjusts intensity, rhythm, or duration so patterns become easier to distinguish over time.
-3. **Context awareness** — Patterns aren't static; the same "meaning" (e.g., *attention*) may render differently depending on context (walking vs. driving vs. in a pocket vs. on a wrist).
-4. **Sensor fusion** — For directional use cases like object-finding, HapticOS combines camera, accelerometer, and gyroscope data to continuously translate "where you're facing" into "how strong/what pattern to pulse."
+| Path | Contents |
+| --- | --- |
+| `prototype/index.html` | Application shell, navigation and information dialog |
+| `prototype/style.css` | Mobile layout, desktop phone frame and cue animations |
+| `prototype/app.js` | Sample events, route progression and finder interactions |
+| `docs/PROJECT.md` | Product scope, examples, implementation milestones and limitations |
+| `docs/ARCHITECTURE.md` | Proposed Android components, event flow and technical boundaries |
+| `docs/TESTING.md` | Manual checks for the concept and planned native validation |
+| `docs/assets/` | System architecture in PNG and SVG formats |
+| `docs/screenshots/` | Screenshot capture requirements |
 
----
+## Planned Android stack
 
-## What HapticOS Is *Not*
+| Responsibility | Candidate technology |
+| --- | --- |
+| Interface and lifecycle | Kotlin and Jetpack Compose |
+| Event coordination | Coroutines and a single bounded scheduler |
+| Selected notifications | NotificationListenerService |
+| Supported cellular call state | TelephonyCallback.CallStateListener |
+| Camera pipeline | CameraX with latest frame analysis |
+| Visible object detection | MediaPipe and EfficientDet Lite0 |
+| Short text classification | Quantised Qwen2.5 0.5B Instruct through llama.cpp |
+| Physical haptics | VibrationEffect and VibratorManager |
 
-- It is not a replacement for notifications entirely — screens and sound still matter for rich content.
-- It is not "stronger vibrations." The innovation is semantic meaning, not intensity.
-- It is not tied to any single use case — navigation, alerts, reminders, and confirmations are simply the first four proof points.
+Models and runtimes must be benchmarked on the actual device. CPU inference is the baseline; NPU acceleration depends on compatible device, model and runtime support. Route retrieval may need connectivity.
 
----
+## Development priorities
 
-## Project Status & Roadmap
+1. Verify permissions and supported vibration effects on the event phone.
+2. Build the shared event contract, scheduler and cancellation behaviour.
+3. Connect selected notifications, one call path, one walking route and three supported object categories.
+4. Test cue recognition, target loss, stale directions, inference deadlines and resource use.
 
-This project is currently in the **idea and design stage**. No code has been written yet.
-
-**Planned phases:**
-- [ ] Define and document the initial haptic pattern vocabulary
-- [ ] Build a prototype for one use case (likely navigation) on a single platform
-- [ ] Test pattern recognizability and learnability with a small user group
-- [ ] Explore personalization/adaptation logic
-- [ ] Expand to the remaining three use cases
-- [ ] Explore accessibility-focused pilot testing
-
----
-
+The project is being prepared for iQOO City Battles 2026. Office Kit supports the development workflow; it is not an end user dependency.
 
 ## Contributing
 
-This project is early-stage and ideas are welcome. If you'd like to contribute thoughts, sketches, or code once development begins, feel free to open an issue or discussion.
+Keep changes focused and describe the behaviour they improve. Follow the [manual checks](docs/TESTING.md) before proposing a change. Use fictional sample messages and routes. Do not add real notification content or personal information to fixtures or screenshots.
+
+Native integrations should document permissions, failure behaviour and whether any input is simulated. Report measurements with the device and test conditions rather than presenting targets as achieved results.
